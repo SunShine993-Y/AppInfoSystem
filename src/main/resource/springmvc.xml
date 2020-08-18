@@ -40,5 +40,11 @@
     </bean>
     <!--静态文件放行  静态文件也是请求  只要有这个请求就会被拦截 需要将其进行映射指定-->
     <mvc:resources mapping="/statics/**" location="/statics/"/>
-
+    <!--配置文件上传-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--显示文件上传的大小-->
+        <property name="maxUploadSize" value="5242880"/>
+        <!--设置默认的字符编码-->
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
 </beans>

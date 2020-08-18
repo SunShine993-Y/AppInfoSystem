@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bdqn.dao.backend.BackendUserMapper">
+    <!--BackendUser doLogin(@Param("userCode") String userCode,@Param("userPassword") String userPassword);-->
+    <select id="doLogin" resultType="BackendUser">
+        select * from backend_user where userCode=#{userCode} and userPassword=#{userPassword}
+    </select>
+</mapper>

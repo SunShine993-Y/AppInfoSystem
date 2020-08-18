@@ -36,4 +36,39 @@ public class AppInfoServiceImpl implements AppInfoService {
     public List<DataDictionary> findDataDictionaryList(String param) {
         return appInfoMapper.findDataDictionaryList(param);
     }
+
+    @Override
+    public boolean apkNameExist(String apkName) {
+        AppInfo appInfo = appInfoMapper.apkNameExist(apkName);
+        if(appInfo != null){
+            return true;
+        }else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean appInfoAdd(AppInfo appInfo) {
+
+        if(appInfoMapper.appInfoAdd(appInfo)>0){
+            return true;
+        }else {
+            return false;
+        }
+
+    }
+
+    @Override
+    public AppInfo findAppInfoById(Integer id) {
+        return appInfoMapper.findAppInfoById(id);
+    }
+
+    @Override
+    public boolean delApk(Integer id) {
+        if(appInfoMapper.delApk(id)>0){
+            return true;
+        }else {
+            return false;
+        }
+    }
 }

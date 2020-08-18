@@ -1,22 +1,22 @@
 package com.bdqn.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.bdqn.pojo.AppCategory;
-import com.bdqn.pojo.AppInfo;
-import com.bdqn.pojo.DataDictionary;
-import com.bdqn.pojo.QueryAppInfoVO;
+import com.bdqn.pojo.*;
 import com.bdqn.service.AppCategoryService;
 import com.bdqn.service.AppInfoService;
+import com.bdqn.service.AppVersionService;
 import com.bdqn.util.PageBean;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 @Controller
 @RequestMapping("/dev/flatform/app")
@@ -26,15 +26,156 @@ public class AppInfoController {
     private AppInfoService appInfoService;
     @Resource
     private AppCategoryService appCategoryService;
+    @Resource
+    private AppVersionService appVersionService;
+
+    @RequestMapping("/delapp.json")
+    @ResponseBody
+    public String delApk(Integer id){
+        boolean result = appInfoService.delApk(id);
+        String meg=null;
+        if(!result){
+            meg="failed";
+        }else{
+            meg="success";
+        }
+        return JSON.toJSONString(meg);
+    }
+
+    //下架
+    @ResponseBody
+    @RequestMapping("{appId}/sale.json")
+    public String sale(@PathVariable Integer appId){
+       //appInfoService.updStatus(appId);
+        return "";
+    }
+
+    //appview/56
+    @RequestMapping("appview/{id}")
+    public String appview(Model model, @PathVariable Integer id){
+        //app所有信息
+        AppInfo appInfo = appInfoService.findAppInfoById(id);
+        List<AppVersion> appVersionList = appVersionService.appVersionAdd(id);
+        model.addAttribute("appVersionList",appVersionList);
+        model.addAttribute("appInfo",appInfo);
+        return "developer/appinfoview";
+    }
+    /**
+     * 跳转添加app信息
+     * @return
+     */
+    @RequestMapping("/appinfoadd")
+    public String appInfoAdd(){
+        return "developer/appinfoadd";
+    }
+
+    /**
+     * 动态加载所属平台
+     * @param tcode
+     * @return
+     */
+    //datadictionarylist.json?tcode=APP_FLATFORM
+    @RequestMapping("/datadictionarylist.json")
+    @ResponseBody
+    public String getTcodeList(@RequestParam String tcode){
+        List<DataDictionary> flatFormList=appInfoService.findDataDictionaryList(tcode);
+        return JSON.toJSONString(flatFormList);
+    }
+
+    /**appinfoaddsave添加app信息附带logo图片 需要进行文件上传
+     * 1.form表单  enctype="multipart/form-data"
+     *
+     */
+    @RequestMapping("appinfoaddsave")
+    public String appInfoaddSave(HttpServletRequest request,@ModelAttribute AppInfo appInfo, @RequestParam("a_logoPicPath")MultipartFile multipartFile){
+        /*图片地址*/
+        String logoPicPath = null;
+        String logoLocPath = null;
+        //判断是否是文件上传
+        if(!multipartFile.isEmpty()){
+            //文件上传准备工作
+            //1.指定上传的目录
+            //获取相对路径的绝对路径
+            String realPath = request.getSession().getServletContext().getRealPath("statics/uploadfiles");
+            //2.定义上传文件的大小
+            int fileSize=2097152;//2m
+            //3.定义上传文件的类型
+            List<String> fileNameList= Arrays.asList("jpg","png");
+            //获取文件大小
+            long size = multipartFile.getSize();
+            //获取文件名
+            String fileName = multipartFile.getOriginalFilename();
+            //获取文件的扩展名
+            String extension = FilenameUtils.getExtension(fileName);
+            //判断是否符合你文件的要求
+            if(fileSize<size){//大小不合适
+                request.setAttribute("fileUploadError","上传文件超过2M");
+                return "developer/appinfoadd";
+            }else if(!fileNameList.contains(extension)){//判断文件格式是否符合
+                request.setAttribute("fileUploadError","文件格式不支持");
+                return "developer/appinfoadd";
+            }else{
+                //重命名
+                String newFileName = appInfo.getAPKName()+"."+extension;
+                File dest = new File(realPath+File.separator+newFileName);
+                try {
+                    //进行文件上传
+                    multipartFile.transferTo(dest);
+                    //获取文件上传的地址，获取相对路径
+                    logoPicPath = File.separator+"statics"+File.separator+"uploadfiles"+File.separator+newFileName;
+                    //获取绝对路径
+                    logoLocPath = realPath+File.separator+newFileName;
+                }catch (IllegalStateException e){
+                    e.printStackTrace();
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+                //设置相对路径
+                appInfo.setLogoPicPath(logoPicPath);
+                //设置绝对路径
+                appInfo.setLogoLocPath(logoLocPath);
+                DevUser devUser =(DevUser) request.getSession().getAttribute("devUserSession");
+                appInfo.setCreatedBy(devUser.getId());
+                appInfo.setCreationDate(new Date());
+                appInfo.setDevId(devUser.getId());
+
+                boolean add = appInfoService.appInfoAdd(appInfo);
+                if(!add){
+                    return "developer/appinfoadd";
+                }
+            }
+        }
+        return  "redirect:/dev/flatform/app/list";
+    }
+
+
+    /**
+     * 检查APKName是否存在
+     * @param APKName
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("apkexist.json")
+    public String checkAPKName(@RequestParam String APKName){
+        Map<Object,String> map = new HashMap<Object, String>();
+        if(APKName.isEmpty()){
+            map.put("APKName","empty");
+        }else if(appInfoService.apkNameExist(APKName)){
+            map.put("APKName","exist");
+        }else {
+            map.put("APKName","noexist");
+        }
+        return JSON.toJSONString(map);
+    }
 
     /**
      * 获取等级分类
      * ajax请求必须添加注解 @ResponseBody categorylevellist.json/1
      * @return
      */
-    @RequestMapping("/categorylevellist.json/{pid}")
+    @RequestMapping("/categorylevellist.json")
     @ResponseBody
-    public String getCategoryList(@PathVariable Integer pid){
+    public String getCategoryList(Integer pid){
         List<AppCategory> appCategoryList  = appCategoryService.getAppCategoryListByParentId(pid);
         return JSON.toJSONString(appCategoryList);
     }

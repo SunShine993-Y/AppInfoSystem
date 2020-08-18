@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bdqn.dao.AppVersionMapper">
+    <select id="appVersionAdd" parameterType="_int" resultType="appVersion">
+        SELECT *,i.softwareName appName,d.valueName publishStatusName
+          FROM `app_version` v,app_info i,data_dictionary d
+            where appId=#{id}
+              and v.appId = i.id
+              and d.valueId=v.publishStatus
+              and d.typeCode='PUBLISH_STATUS'
+    </select>
+    <select id="findAppVersionByid" parameterType="_int" resultType="appVersion">
+        select * from `app_version` where id = #{vid}
+    </select>
+    <!--int appVersionAdd(AppVersion appVersion);-->
+    <insert id="VersionAdd">
+      insert into app_version values (
+      default,#{appId},#{versionNo},#{versionInfo},#{publishStatus},
+      #{downloadLink},#{versionSize},#{createdBy},#{creationDate},
+      #{modifyBy},#{modifyDate},#{apkLocPath},#{apkFileName}
+      )
+    </insert>
+    <!--int updVersion(AppVersion appVersion);-->
+    <update id="updVersion">
+      update app_version set versionSize=#{versionSize} , versionInfo=#{versionInfo}
+       ,modifyBy=#{modifyBy} ,modifyDate=#{modifyDate} where appId=#{appId}
+    </update>
+</mapper>

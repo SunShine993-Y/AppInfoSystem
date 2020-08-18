@@ -67,4 +67,37 @@
     <select id="findDataDictionaryList" resultType="DataDictionary" parameterType="String">
         select * from data_dictionary where typeCode=#{param}
     </select>
+    <!--AppInfo apkNameExist(String apkName);-->
+    <select id="apkNameExist" parameterType="String" resultType="AppInfo">
+        select * from app_info where APKName=#{apkName}
+    </select>
+    <!--boolean appInfoAdd(AppInfo appInfo);-->
+    <insert id="appInfoAdd">
+      insert into  app_info values (
+          #{id},#{softwareName},#{APKName},#{supportROM},
+          #{interfaceLanguage},#{softwareSize},#{updateDate},#{devId},
+          #{appInfo},#{status},#{onSaleDate},#{offSaleDate},
+          #{flatformId},#{categoryLevel3},#{downloads},#{createdBy},
+          #{creationDate},#{modifyBy},#{modifyDate},#{categoryLevel1},
+          #{categoryLevel2},#{logoPicPath},#{logoLocPath},#{versionId}
+          );
+    </insert>
+    <select id="findAppInfoById" parameterType="int" resultType="AppInfo">
+        select
+            i.id,i.softwareName,i.APKName,i.supportROM,i.interfaceLanguage,i.softwareSize,i.updateDate,i.devId,i.appInfo,i.onSaleDate,i.offSaleDate,
+            i.downloads,i.createdBy,i.creationDate,i.modifyBy,i.modifyDate,i.logoPicPath,i.logoLocPath,
+            i.flatformId,(select d.valueName from data_dictionary d where d.valueId = i.flatformId and d.typeCode = "APP_FLATFORM") as flatformName,
+            i.`status`,(select d.valueName from data_dictionary d where d.valueId = i.`status` and d.typeCode = "APP_STATUS" ) as statusName,
+            i.versionId,(select v.versionNo from app_version v where v.id = i.versionId ) as versionNo,
+            i.categoryLevel1,(select c.categoryName from app_category c where c.id = i.categoryLevel1) as categoryLevel1Name,
+            i.categoryLevel2,(select c.categoryName from app_category c where c.id = i.categoryLevel2) as categoryLevel2Name,
+            i.categoryLevel3,(select c.categoryName from app_category c where c.id = i.categoryLevel3) as categoryLevel3Name
+            from `app_info` i
+            where id = #{id}
+    </select>
+    <!--int delApk(Integer id);-->
+    <delete id="delApk" parameterType="int">
+      delete  from app_info  where id=#{id};
+      delete from app_version where appId=#{id}
+    </delete>
 </mapper>

@@ -14,4 +14,12 @@ public interface AppInfoMapper {
     List<AppInfo> findAppInfo(QueryAppInfoVO queryAppInfoVO);
 
     List<DataDictionary> findDataDictionaryList(@Param("param") String param);
+
+    AppInfo apkNameExist(String apkName);
+
+    int appInfoAdd(AppInfo appInfo);
+
+    AppInfo findAppInfoById(Integer id);
+
+    int delApk(Integer id);
 }
