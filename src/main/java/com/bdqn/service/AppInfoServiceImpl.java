@@ -71,4 +71,12 @@ public class AppInfoServiceImpl implements AppInfoService {
             return false;
         }
     }
+
+    @Override
+    public boolean checkSave(Integer status, Integer id) {
+        if (appInfoMapper.checkSave(status,id) > 0){
+            return true;
+        }
+        return false;
+    }
 }

@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("/manager")
-public class BaxkendLoginController {
+public class BackendLoginController {
 
     @Resource
     private BackendUserService backendUserService;

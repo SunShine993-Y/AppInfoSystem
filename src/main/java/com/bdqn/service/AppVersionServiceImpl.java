@@ -37,4 +37,9 @@ public class AppVersionServiceImpl implements AppVersionService {
         }
         return false;
     }
+
+    @Override
+    public AppVersion findAppVersionById(Integer vid) {
+        return appVersionMapper.findAppVersionById(vid);
+    }
 }

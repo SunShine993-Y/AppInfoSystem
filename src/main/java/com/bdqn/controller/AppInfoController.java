@@ -1,16 +1,19 @@
 package com.bdqn.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdqn.pojo.*;
 import com.bdqn.service.AppCategoryService;
 import com.bdqn.service.AppInfoService;
 import com.bdqn.service.AppVersionService;
+import com.bdqn.util.JedisUtils;
 import com.bdqn.util.PageBean;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import redis.clients.jedis.Jedis;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -198,22 +201,52 @@ public class AppInfoController {
         }
         //每页显示的条数
         queryAppInfoVO.setPageSize(5);
-        PageBean<AppInfo> pages = appInfoService.findAppList(queryAppInfoVO);
+
+        // 开始缓存   先判断redis中有没有这些数据
+        // 第一次进来的时候 是从mysql数据库找那个查询数据  有点慢
+        // 但是查到的数据保存到redis中  第二次查询的时候 判断redis中有没有这条数据
+        // 如果有直接redis中获取数据 快
+        Jedis jedis = JedisUtils.getJedis();
+        PageBean<AppInfo> pages = null;
+        List<DataDictionary> statusList=null;
+        List<DataDictionary> flatFormList= null;
+        List<AppCategory> categoryLevel1List  = null;
+        if(jedis.get("pageIndex") == null){
+            jedis.set("pageIndex","1");
+        }
+        if(jedis.exists("pages") && jedis.exists("statusList") && jedis.exists("flatFormList") &&
+            jedis.exists("categoryLevel1List") && queryAppInfoVO.getPageIndex() == Integer.parseInt(jedis.get("pageIndex"))) {
+            //在redis中查询这些数据
+            pages = JSONObject.parseObject(jedis.get("pages"),PageBean.class);
+            statusList = JSONObject.parseObject(jedis.get("statusList"),List.class);
+            flatFormList = JSONObject.parseObject(jedis.get("flatFormList"),List.class);
+            categoryLevel1List = JSONObject.parseObject(jedis.get("categoryLevel1List"),List.class);
+
+        }else {
+
+            pages = appInfoService.findAppList(queryAppInfoVO);
+
+            //查询app状态
+            statusList = appInfoService.findDataDictionaryList("APP_STATUS");
+
+            //查询所属平台
+            flatFormList = appInfoService.findDataDictionaryList("APP_FLATFORM");
+
+            //查询一级分类信息
+            categoryLevel1List = appCategoryService.getAppCategoryListByParentId(null);
+
+            //从数据库中查到的数据存放到redis中
+            jedis.set("pageIndex",queryAppInfoVO.getPageIndex().toString());
+            jedis.set("pages",JSON.toJSONString(pages));
+            jedis.set("statusList",JSON.toJSONString(statusList));
+            jedis.set("flatFormList",JSON.toJSONString(flatFormList));
+            jedis.set("categoryLevel1List",JSON.toJSONString(categoryLevel1List));
+        }
         request.setAttribute("pages",pages);
         request.setAttribute("appInfoList",pages.getResult());
-
-        //查询app状态
-        List<DataDictionary> statusList=appInfoService.findDataDictionaryList("APP_STATUS");
         request.setAttribute("statusList",statusList);
-
-        //查询所属平台
-        List<DataDictionary> flatFormList=appInfoService.findDataDictionaryList("APP_FLATFORM");
         request.setAttribute("flatFormList",flatFormList);
-
-        //查询一级分类信息
-        List<AppCategory> categoryLevel1List  = appCategoryService.getAppCategoryListByParentId(null);
         request.setAttribute("categoryLevel1List",categoryLevel1List);
-
         //进行数据回显
         request.setAttribute("querySoftwareName",queryAppInfoVO.getQuerySoftwareName());
         request.setAttribute("queryStatus",queryAppInfoVO.getQueryStatus());

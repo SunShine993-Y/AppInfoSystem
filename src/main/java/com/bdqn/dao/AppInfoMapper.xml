@@ -100,4 +100,8 @@
       delete  from app_info  where id=#{id};
       delete from app_version where appId=#{id}
     </delete>
+    <!--int checkSave(@Param("status") Integer status,@Param("id") Integer id);-->
+    <update id="checkSave" >
+        UPDATE app_info SET `status` = #{status} WHERE  id = #{id}
+    </update>
 </mapper>

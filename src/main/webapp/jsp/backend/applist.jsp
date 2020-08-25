@@ -182,7 +182,7 @@
 					<div class="col-sm-5">
 						<div class="dataTables_info" id="datatable-responsive_info"
 							role="status" aria-live="polite">共${pages.totalCount }条记录
-							${pages.currentPageNo }/${pages.totalPageCount }页</div>
+							${pages.currentPageNo }/${pages.totalPage }页</div>
 					</div>
 					<div class="col-sm-7">
 						<div class="dataTables_paginate paging_simple_numbers"
@@ -200,14 +200,14 @@
 										tabindex="0">上一页</a>
 									</li>
 								</c:if>
-								<c:if test="${pages.currentPageNo < pages.totalPageCount }">
+								<c:if test="${pages.currentPageNo < pages.totalPage }">
 									<li class="paginate_button "><a
 										href="javascript:page_nav(document.forms[0],${pages.currentPageNo+1 });"
 										aria-controls="datatable-responsive" data-dt-idx="1"
 										tabindex="0">下一页</a>
 									</li>
 									<li class="paginate_button next"><a
-										href="javascript:page_nav(document.forms[0],${pages.totalPageCount });"
+										href="javascript:page_nav(document.forms[0],${pages.totalPage });"
 										aria-controls="datatable-responsive" data-dt-idx="7"
 										tabindex="0">最后一页</a>
 									</li>

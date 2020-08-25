@@ -12,4 +12,6 @@ public interface AppVersionService {
     boolean VersionAdd(AppVersion appVersion);
 
     boolean updVersion(AppVersion appVersion);
+
+    AppVersion findAppVersionById(Integer vid);
 }

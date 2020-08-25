@@ -19,4 +19,7 @@ public interface AppInfoService {
     AppInfo findAppInfoById(Integer id);
 
     boolean delApk(Integer id);
+
+    boolean checkSave(Integer status, Integer id);
+
 }

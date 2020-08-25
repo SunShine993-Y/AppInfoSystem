@@ -12,4 +12,6 @@ public interface AppVersionMapper {
     int VersionAdd(AppVersion appVersion);
 
     int updVersion(AppVersion appVersion);
+
+    AppVersion findAppVersionById(Integer vid);
 }

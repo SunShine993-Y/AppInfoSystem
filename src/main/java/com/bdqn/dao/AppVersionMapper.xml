@@ -27,4 +27,9 @@
       update app_version set versionSize=#{versionSize} , versionInfo=#{versionInfo}
        ,modifyBy=#{modifyBy} ,modifyDate=#{modifyDate} where appId=#{appId}
     </update>
+
+    <!--AppVersion findAppVersionById(Integer vid);-->
+    <select id="findAppVersionById" parameterType="_int" resultType="appVersion">
+        select  * from  app_version where  id = #{vid}
+    </select>
 </mapper>

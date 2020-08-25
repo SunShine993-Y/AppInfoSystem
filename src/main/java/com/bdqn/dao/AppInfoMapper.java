@@ -22,4 +22,6 @@ public interface AppInfoMapper {
     AppInfo findAppInfoById(Integer id);
 
     int delApk(Integer id);
+
+    int checkSave(@Param("status") Integer status,@Param("id") Integer id);
 }
